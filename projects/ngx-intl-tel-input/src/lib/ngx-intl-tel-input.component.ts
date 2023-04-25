@@ -85,6 +85,7 @@ export class NgxIntlTelInputComponent implements OnInit, OnChanges {
   disabled = false;
   errors: Array<any> = ['Phone number is required.'];
   countrySearchText = '';
+  allCountriesMasterData: Array<Country> = [];
 
   @ViewChild('countryList') countryList: ElementRef;
 
@@ -137,6 +138,7 @@ export class NgxIntlTelInputComponent implements OnInit, OnChanges {
         this.setSelectedCountry(this.allCountries[0]);
       }
     }
+    this.allCountriesMasterData = JSON.parse(JSON.stringify(this.allCountries));
     this.updateSelectedCountry();
     this.checkSeparateDialCodeStyle();
   }
@@ -151,18 +153,12 @@ export class NgxIntlTelInputComponent implements OnInit, OnChanges {
    */
   public searchCountry() {
     if (!this.countrySearchText) {
-      this.countryList.nativeElement
-        .querySelector('.iti__country-list li')
-        .scrollIntoView({
-          behavior: 'smooth',
-          block: 'nearest',
-          inline: 'nearest',
-        });
+      this.allCountries = this.allCountriesMasterData;
       return;
     }
     const countrySearchTextLower = this.countrySearchText.toLowerCase();
     // @ts-ignore
-    const country = this.allCountries.filter((c) => {
+    this.allCountries = this.allCountriesMasterData.filter((c) => {
       if (this.searchCountryField.indexOf(SearchCountryField.All) > -1) {
         // Search in all fields
         if (c.iso2.toLowerCase().startsWith(countrySearchTextLower)) {
@@ -193,20 +189,6 @@ export class NgxIntlTelInputComponent implements OnInit, OnChanges {
         }
       }
     });
-
-    if (country.length > 0) {
-      const el = this.countryList.nativeElement.querySelector(
-        '#' + country[0].htmlId
-      );
-      if (el) {
-        el.scrollIntoView({
-          behavior: 'smooth',
-          block: 'nearest',
-          inline: 'nearest',
-        });
-      }
-    }
-
     this.checkSeparateDialCodeStyle();
   }
 
@@ -313,7 +295,7 @@ export class NgxIntlTelInputComponent implements OnInit, OnChanges {
       // @ts-ignore
       this.propagateChange(null);
     }
-
+    this.allCountries = this.allCountriesMasterData;
     el.focus();
   }
 
@@ -488,13 +470,13 @@ export class NgxIntlTelInputComponent implements OnInit, OnChanges {
 
     this.countryCodeData.allCountries.forEach((c) => {
       const country: Country = {
-        name: c[0].toString(),
-        iso2: c[1].toString(),
-        dialCode: c[2].toString(),
-        priority: +c[3] || 0,
-        areaCodes: (c[4] as string[]) || undefined,
-        htmlId: `iti-0__item-${c[1].toString()}`,
-        flagClass: `iti__${c[1].toString().toLocaleLowerCase()}`,
+        name: c.name,
+				iso2: c.code.toLowerCase(),
+				dialCode: c.dial_code.replace('+', ''),
+				priority: c.priority ? c.priority : 0,
+				areaCodes: c.area_codes ? c.area_codes : undefined,
+				htmlId: `iti-0__item-${c.code.toLowerCase()}`,
+				flagClass: `iti__${c.code.toLocaleLowerCase()}`,
         placeHolder: '',
       };
 
@@ -506,7 +488,13 @@ export class NgxIntlTelInputComponent implements OnInit, OnChanges {
 
       this.allCountries.push(country);
     });
+    this.allCountries.sort(this.sortAlphabeticallyByField('name'));
   }
+
+  resetCountrySearchText() {
+		this.countrySearchText = '';
+		this.allCountries = this.allCountriesMasterData;
+	}
 
   /**
    * Populates preferredCountriesInDropDown with prefferred countries.
@@ -544,5 +532,16 @@ export class NgxIntlTelInputComponent implements OnInit, OnChanges {
         }
       }
     }
+  }
+
+  /**
+	 * Sort array of objects alphabetically by field name.
+	 */
+	sortAlphabeticallyByField(field: any) {
+		return (a:any, b: any) => {
+		  if (a[field] < b[field]) { return -1; }
+		  if (a[field] > b[field]) { return 1; }
+		  return 0;
+		}
   }
 }

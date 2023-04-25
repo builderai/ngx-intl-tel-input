@@ -1,5 +1,5 @@
 <div class="iti iti--allow-dropdown"
-	[ngClass]="separateDialCodeClass">
+	[ngClass]="separateDialCodeClass" (click)="resetCountrySearchText()">
 	<div class="iti__flag-container"
 		dropdown
 		[ngClass]="{'disabled': disabled}"
@@ -38,17 +38,19 @@
 				</li>
 				<li class="iti__divider"
 					*ngIf="preferredCountriesInDropDown?.length"></li>
-				<li class="iti__country iti__standard"
-					*ngFor="let country of allCountries"
-					(click)="onCountrySelect(country, focusable)"
-					[id]="country.htmlId">
-					<div class="iti__flag-box">
-						<div class="iti__flag"
-							[ngClass]="country.flagClass"></div>
-					</div>
-					<span class="iti__country-name">{{country.name}}</span>
-					<span class="iti__dial-code">+{{country.dialCode}}</span>
-				</li>
+					<ng-container *ngIf="allCountries?.length; else noRecordFound">
+						<li class="iti__country iti__standard" *ngFor="let country of allCountries"
+							(click)="onCountrySelect(country, focusable)" [id]="country.htmlId">
+							<div class="iti__flag-box">
+								<div class="iti__flag" [ngClass]="country.flagClass"></div>
+							</div>
+							<span class="iti__country-name">{{country.name}}</span>
+							<span class="iti__dial-code">+{{country.dialCode}}</span>
+						</li>
+					</ng-container>
+					<ng-template #noRecordFound>
+						<li class="iti__country iti__standard">No Record Found</li>
+					</ng-template>
 			</ul>
 		</div>
 	</div>
